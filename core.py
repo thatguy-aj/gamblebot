@@ -152,8 +152,11 @@ async def slotmachine(ctx, bet):
 '''Owner commands'''
 @gamblebot.command()
 @commands.is_owner()
-async def admingift(ctx, target:discord.Member):
+async def admingift(ctx, target:discord.Member, amount):
     memberData = bank.loadMemberData(target.id)
-    
+    try:
+        memberData.chips += amount
+    except:
+        await ctx.respond('Invalid Amount')
 
 gamblebot.run(TOKEN)
