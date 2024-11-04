@@ -101,13 +101,31 @@ async def slotcombos(ctx):
 
 @gamblebot.command()
 async def slotmachine(ctx, bet):
-    int_bet = int(bet)
+    try:
+        int_bet = int(bet)
+    except ValueError:
+        try:
+            int_bet = round(float(bet))
+        except:
+            await ctx.respond(f'{bet} is an invalid input, please try again')
+            return
+
+    
+    if int_bet <= 0:
+        await ctx.respond('Bet cannot be lower or equal to 0')
+        return
+    
     memberData = bank.loadMemberData(ctx.author.id)
+    if memberData.chips < int_bet:
+        await ctx.respond('You do not have enough chips to bet that amount, broke ass')
+        return
     memberData.chips -= int_bet
 
-    if int_bet < 25 or int_bet > 200:
-        await ctx.respond('Invalid Chip Amount: Min Bet: 25, Max Bet: 200')
-        return 0
+
+
+    #if int_bet < 25 or int_bet > 200:
+        #await ctx.respond('Invalid Chip Amount: Min Bet: 25, Max Bet: 200')
+        #return 0
     slot_results, next_results, prev_results = slots.speen(3)
     '''Yandere dev ahhh code'''
     if slot_results == ['🍒','🍒','🍒']:
@@ -147,16 +165,23 @@ async def slotmachine(ctx, bet):
     
     SlotMachine = discord.Embed(title='Spinny Bob\'s Slot Machine',description='Only losers do drugs' ,color=color_flair)
     SlotMachine.add_field(name='Results', value=f'=={next_results_combined}==\n**>>{slot_results_combined}<<**\n=={prev_results_combined}==\n\n{win_message}\nCurrent Balance: {memberData.chips}')
+    await ctx.respond(embed=SlotMachine)
 
 
 '''Owner commands'''
 @gamblebot.command()
 @commands.is_owner()
 async def admingift(ctx, target:discord.Member, amount):
-    memberData = bank.loadMemberData(target.id)
-    try:
-        memberData.chips += amount
-    except:
-        await ctx.respond('Invalid Amount')
+    if target.id == ctx.user.bot.id:
+        await ctx.respond("Can't send Chips to the bot you silly billy")
+        return
+    else:
+        memberData = bank.loadMemberData(target.id)
+        try:
+            memberData.chips += int(amount)
+            bank.saveMemberData(target.id, memberData)
+            await ctx.respond(f'Sent {amount} Coinage')
+        except:
+            await ctx.respond('Invalid Amount')
 
 gamblebot.run(TOKEN)
