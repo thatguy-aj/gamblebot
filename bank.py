@@ -5,22 +5,24 @@ import time
 
 dataFilename = 'data.pickle'
 
-'''Creates the Data Structure for the memberData'''
 class Data():
+    '''Creates the Data Structure for the memberData with values chips and bank'''
     def __init__(self, chips, bank):
         self.chips = chips
         self.bank = bank
 
 
-'''Deals with saving and loading memeber data from the pickle file'''
-def loadData(): #Loads the pickle file with the user data on it
+def loadData(): 
+    '''Deals with saving and loading memeber data from the pickle file'''
     if os.path.isfile(dataFilename):
         with open(dataFilename, 'rb') as file:
             return pickle.load(file)
     else:
         return dict()
-    
-def loadMemberData(memberID): #Gets a specific memebers data on the pickle file
+
+
+def loadMemberData(memberID): 
+    '''Gets a specific memebers data on the pickle file'''
     data = loadData()
 
     if memberID not in data:
@@ -30,6 +32,7 @@ def loadMemberData(memberID): #Gets a specific memebers data on the pickle file
     return data[memberID]
 
 def saveMemberData(memberID, memberData):
+    '''Saves the new values to the pickle file'''
     data = loadData()
 
     data[memberID] = memberData
@@ -39,12 +42,14 @@ def saveMemberData(memberID, memberData):
 
 '''Handles commands inputed by the user'''
 def depositMember(memberData, amount):
+    '''Adds value from players wallet to bank'''
     if amount > memberData.chips:
         return False
     memberData.bank += amount
     memberData.chips -= amount
 
 def withdrawlMember(memberData, amount):
+    '''Adds value from players bank to wallet'''
     if amount > memberData.bank:
         return False
     memberData.bank -= amount

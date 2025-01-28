@@ -7,6 +7,7 @@ import random
 import time
 import bank
 import slots
+import roulette
 from dotenv import load_dotenv
 
 '''Token for the bot'''
@@ -39,6 +40,8 @@ async def on_ready():
 
 
 '''commands'''
+#TODO Add help command
+
 @gamblebot.command(description="Gets the bot's ping")
 async def ping(ctx):
     await ctx.respond(f'Pong! {gamblebot.latency} ms')
@@ -110,7 +113,6 @@ async def slotmachine(ctx, bet):
             await ctx.respond(f'{bet} is an invalid input, please try again')
             return
 
-    
     if int_bet <= 0:
         await ctx.respond('Bet cannot be lower or equal to 0')
         return
@@ -120,8 +122,6 @@ async def slotmachine(ctx, bet):
         await ctx.respond('You do not have enough chips to bet that amount, broke ass')
         return
     memberData.chips -= int_bet
-
-
 
     #if int_bet < 25 or int_bet > 200:
         #await ctx.respond('Invalid Chip Amount: Min Bet: 25, Max Bet: 200')
@@ -168,11 +168,18 @@ async def slotmachine(ctx, bet):
     await ctx.respond(embed=SlotMachine)
 
 
+'''Roulette Commands'''
+@gamblebot.command()
+async def startroulette(ctx):
+    Bets = {}
+    RouletteRules = discord.Embed(title = 'Roulette Rules', description = 'Score points by betting what the number will be from 0 to 36')
+
+
 '''Owner commands'''
 @gamblebot.command()
 @commands.is_owner()
 async def admingift(ctx, target:discord.Member, amount):
-    if target.id == ctx.user.bot.id:
+    if target.id == gamblebot.user.id:
         await ctx.respond("Can't send Chips to the bot you silly billy")
         return
     else:
