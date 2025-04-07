@@ -6,9 +6,9 @@ import os
 import random
 import time
 import bank
-import slots
-import roulette
+from cogs import slots
 from dotenv import load_dotenv
+import asyncio
 
 '''Token for the bot'''
 load_dotenv()
@@ -26,18 +26,26 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-
 '''Initializes bot'''
-gamblebot = discord.Bot()
-
+gamblebot = discord.Bot(intents=intents)
 
 '''events'''
 @gamblebot.event
 async def on_ready():
     print(f'Logged in as {gamblebot.user}')
 
-#@gamblebot.event (Make it so it DMs the user welcoming them to the server and telling them their current bank balance)
+async def main():
+    async with gamblebot:
+        print("Loading extension:", "cogs.slots")
+        try:
+            gamblebot.add_cog(slots.SlotsCog(gamblebot))
+            print('Successfully Loaded: cogs.slots')
+        except Exception as e:
+            print("Error Loading cogs.slots")
+            print(f"Exception: {e}")
+        await gamblebot.start(TOKEN) 
 
+#@gamblebot.event (Make it so it DMs the user welcoming them to the server and telling them their current bank balance)
 
 '''commands'''
 #TODO Add help command
@@ -46,7 +54,6 @@ async def on_ready():
 async def ping(ctx):
     await ctx.respond(f'Pong! {gamblebot.latency} ms')
 
-#TODO Re-write for a text file
 @gamblebot.command(description="For when you need a little Inspriation to keep going")
 async def inspiration(ctx):
     text_file = 'inspiration.txt'
@@ -54,7 +61,6 @@ async def inspiration(ctx):
         quotes = file.readlines()
         random_quote = random.choice(quotes).strip()
     await ctx.respond(random_quote)
-
 
 '''Bank commands'''
 #TODO Make a daily login reward system
@@ -95,86 +101,6 @@ async def withdrawl(ctx, amount):
         bank.saveMemberData(ctx.author.id, memberData)
         await ctx.respond(f'Withdrawled {amount} chips from your bank')
 
-'''Slot Machine commands'''
-@gamblebot.command()
-async def slotcombos(ctx):
-    ComboSheet = discord.Embed(title='Combo Sheet', color=discord.Colour.purple())
-    ComboSheet.add_field(name='**Combos**', value='🍒🍒 = 2x\n🍒🍒🍒 = 3x\n🍋🍋🍋 = 5x\n🍇🍇🍇 = 10x\n🔔🔔🔔 = 25x\n🍀🍀🍀 = 50x')
-    await ctx.respond(embed=ComboSheet)
-
-@gamblebot.command()
-async def slotmachine(ctx, bet):
-    try:
-        int_bet = int(bet)
-    except ValueError:
-        try:
-            int_bet = round(float(bet))
-        except:
-            await ctx.respond(f'{bet} is an invalid input, please try again')
-            return
-
-    if int_bet <= 0:
-        await ctx.respond('Bet cannot be lower or equal to 0')
-        return
-    
-    memberData = bank.loadMemberData(ctx.author.id)
-    if memberData.chips < int_bet:
-        await ctx.respond('You do not have enough chips to bet that amount, broke ass')
-        return
-    memberData.chips -= int_bet
-
-    #if int_bet < 25 or int_bet > 200:
-        #await ctx.respond('Invalid Chip Amount: Min Bet: 25, Max Bet: 200')
-        #return 0
-    slot_results, next_results, prev_results = slots.speen(3)
-    '''Yandere dev ahhh code'''
-    if slot_results == ['🍒','🍒','🍒']:
-        winnings = 3
-    elif slot_results[0:2] == ['🍒','🍒'] or slot_results[1:3] == ['🍒','🍒']:
-        winnings = 2
-    elif slot_results == ['🍋','🍋','🍋']:
-        winnings == 5
-    elif slot_results == ['🍇','🍇','🍇']:
-        winnings == 10
-    elif slot_results == ['🔔','🔔','🔔']:
-        winnings = 25
-    elif slot_results == ['🍀', '🍀', '🍀']:
-        winnings = 50
-    else:
-        winnings = 0
-
-
-    '''Adds winnings to the players chips'''
-    player_winnings = int_bet * winnings
-    memberData.chips += player_winnings
-    bank.saveMemberData(ctx.author.id, memberData)
-
-    if winnings == 0: #Did not win
-        color_flair = discord.Color.brand_red()
-        win_message = 'Sorry, better luck next time :('
-    elif winnings == 50: #Jackpot
-        color_flair = discord.Color.yellow()
-        win_message = f'WOWZA, {ctx.author.mention} JUST GOT THE JACKPOT AND WON {player_winnings} CHIPS!!!'
-    else: #Won
-        color_flair = discord.Color.brand_green()
-        win_message = f'Congrats, you won {player_winnings} Chips!'
-
-    next_results_combined = " | ".join(next_results)
-    prev_results_combined = " | ".join(prev_results)
-    slot_results_combined = " | ".join(slot_results)
-    
-    SlotMachine = discord.Embed(title='Spinny Bob\'s Slot Machine',description='Only losers do drugs' ,color=color_flair)
-    SlotMachine.add_field(name='Results', value=f'=={next_results_combined}==\n**>>{slot_results_combined}<<**\n=={prev_results_combined}==\n\n{win_message}\nCurrent Balance: {memberData.chips}')
-    await ctx.respond(embed=SlotMachine)
-
-
-'''Roulette Commands'''
-@gamblebot.command()
-async def startroulette(ctx):
-    Bets = {}
-    RouletteRules = discord.Embed(title = 'Roulette Rules', description = 'Score points by betting what the number will be from 0 to 36')
-
-
 '''Owner commands'''
 @gamblebot.command()
 @commands.is_owner()
@@ -191,4 +117,10 @@ async def admingift(ctx, target:discord.Member, amount):
         except:
             await ctx.respond('Invalid Amount')
 
-gamblebot.run(TOKEN)
+@gamblebot.command()
+@commands.is_owner()
+async def sleep(ctx):
+    await ctx.bot.logout()
+
+if __name__ == "__main__":
+    asyncio.run(main())
