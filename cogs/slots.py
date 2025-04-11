@@ -34,23 +34,23 @@ class SlotsCog(commands.Cog):
     @discord.slash_command()
     async def slotmachine(self, ctx, chips):
         try:
-            int(chips)
+            intchips = int(chips)
         except ValueError:
             try:
                 round(float(chips))
             except:
                 await ctx.respond(f'{chips} is an invalid input, please try again')
                 return
-        if chips <= 0:
+        if intchips <= 0:
             await ctx.respond('Bet cannot be lower or equal to 0')
             return
         
         # Loads member's bank data
         memberData = bank.loadMemberData(ctx.author.id)
-        if memberData.chips < chips:
+        if memberData.value["chips"] < intchips:
             await ctx.respond('You do not have enough chips to bet that amount, broke ass :P')
             return
-        memberData.chips -= chips
+        memberData.value["chips"] -= intchips
 
         # Spins slot wheels, and returns results
         slot_results, next_results, prev_results = speen(3)
@@ -72,8 +72,8 @@ class SlotsCog(commands.Cog):
             winnings = 0
 
         '''Adds winnings to the players chips'''
-        player_winnings = chips * winnings
-        memberData.chips += player_winnings
+        player_winnings = intchips * winnings
+        memberData.value["chips"] += player_winnings
         bank.saveMemberData(ctx.author.id, memberData)
 
         if winnings == 0: #Did not win
@@ -91,6 +91,6 @@ class SlotsCog(commands.Cog):
         slot_results_combined = " | ".join(slot_results)
         
         SlotMachine = discord.Embed(title='Spinny Bob\'s Slot Machine',description='Only losers do drugs' ,color=color_flair)
-        SlotMachine.add_field(name='Results', value=f'=={next_results_combined}==\n**>>{slot_results_combined}<<**\n=={prev_results_combined}==\n\n{win_message}\nCurrent Balance: {memberData.chips}')
+        SlotMachine.add_field(name='Results', value=f'=={next_results_combined}==\n**>>{slot_results_combined}<<**\n=={prev_results_combined}==\n\n{win_message}\nCurrent Balance: {memberData.value["chips"]}')
         await ctx.respond(embed=SlotMachine)
 
