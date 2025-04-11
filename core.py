@@ -49,6 +49,14 @@ async def main():
 
 '''commands'''
 #TODO Add help command
+@gamblebot.command(description="List of commands")
+async def help(ctx):
+    pass
+
+@gamblebot.command(description="Highest Ranking Players in terms of Chips")
+async def leaderboard(ctx):
+    
+    pass
 
 @gamblebot.command(description="Gets the bot's ping")
 async def ping(ctx):
@@ -69,8 +77,8 @@ async def balance(ctx):
     memberData = bank.loadMemberData(ctx.author.id)
     MoneySpread = discord.Embed(title=f'{ctx.author.name}\'s Stats')
     MoneySpread.set_author(name=str(ctx.author), icon_url=ctx.author.display_avatar.url)
-    MoneySpread.add_field(name='💼 Wallet:', value=f':coin: {memberData.chips}')
-    MoneySpread.add_field(name=':bank: Bank:', value=f':coin: {memberData.bank}')
+    MoneySpread.add_field(name='💼 Wallet:', value=f':coin: {memberData.value["chips"]}')
+    MoneySpread.add_field(name=':bank: Bank:', value=f':coin: {memberData.value["bank"]}')
     await ctx.respond(embed=MoneySpread)
 
 @gamblebot.command()
@@ -111,7 +119,7 @@ async def admingift(ctx, target:discord.Member, amount):
     else:
         memberData = bank.loadMemberData(target.id)
         try:
-            memberData.chips += int(amount)
+            memberData.value["chips"] += int(amount)
             bank.saveMemberData(target.id, memberData)
             await ctx.respond(f'Sent {amount} Coinage')
         except:
@@ -120,7 +128,14 @@ async def admingift(ctx, target:discord.Member, amount):
 @gamblebot.command()
 @commands.is_owner()
 async def sleep(ctx):
+    await ctx.respond('https://tenor.com/view/sleep-cat-cat-sleep-meme-cat-tired-gif-405481962950662435')
     await ctx.bot.logout()
+
+@gamblebot.command()
+@commands.is_owner()
+async def dumpeet(ctx):
+    bank.clear_pickle_file()
+    await ctx.respond("WHOOPS! Looks like the stock market crashed! All Chips have been reset!\n", "https://tenor.com/view/dump-it-gif-26704933")
 
 if __name__ == "__main__":
     asyncio.run(main())
