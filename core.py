@@ -129,7 +129,7 @@ async def admingift(ctx, target:discord.Member, amount):
 @commands.is_owner()
 async def sleep(ctx):
     await ctx.respond('https://tenor.com/view/sleep-cat-cat-sleep-meme-cat-tired-gif-405481962950662435')
-    await ctx.bot.logout()
+    await gamblebot.close()
 
 @gamblebot.command()
 @commands.is_owner()
