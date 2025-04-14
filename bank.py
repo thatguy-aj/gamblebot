@@ -10,6 +10,12 @@ class Data():
     def __init__(self, chips, bank):
         self.value = {"chips": chips, "bank": bank}
 
+    def __str__(self):
+        return f"Chips: {self.value['chips']}, Bank: {self.value['bank']}"
+    
+    def __repr__(self):
+        return self.__str__()
+
 def loadData():
     if os.path.isfile(dataFilename):
         try:
